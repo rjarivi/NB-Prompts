@@ -107,9 +107,9 @@
                 </div>
                 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Latest</a>
-                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Popular</a>
-                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Curated</a>
+                    <a id="nav-latest" href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Latest</a>
+                    <a id="nav-popular" href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Popular</a>
+                    <a id="nav-curated" href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Curated</a>
                     <a href="https://forms.gle/VEfEwoLLJoVRmuB86" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-medium bg-zinc-900 border border-zinc-800 rounded-full hover:bg-zinc-800 transition-colors text-white">Submit Prompt</a>
                 </div>
             </div>
@@ -127,6 +127,13 @@
             <p class="text-zinc-400 text-lg mb-8">
                 A minimal library of high-quality prompts. Copy, paste, and create.
             </p>
+            <div class="flex items-center justify-center gap-2 text-xs text-zinc-500 mt-2 mb-6">
+                <span>Powered by</span>
+                <span class="font-semibold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-transparent bg-clip-text">Gemini 3</span>
+                <span>·</span>
+                <span>Designed by</span>
+                <a href="https://x.com/rjarivi" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-white transition-colors">@rjarivi</a>
+            </div>
             
             <!-- Search Bar -->
             <div class="relative max-w-lg mx-auto group">
@@ -142,12 +149,22 @@
         </div>
 
         <!-- Filter Tags -->
-        <div class="flex flex-wrap justify-center gap-2 mb-12" id="filterContainer">
+        <div class="flex flex-wrap justify-center gap-2 mb-6" id="filterContainer">
             <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-white text-black transition-colors" data-filter="all">All</button>
             <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="photography">Photography</button>
             <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="3d">3D Render</button>
             <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="illustration">Illustration</button>
             <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="ui">UI Design</button>
+        </div>
+        <div class="flex justify-center mb-12">
+            <div id="popularWindowWrap" class="hidden inline-flex items-center gap-2 px-3 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
+                <span class="text-xs">Trending window</span>
+                <select id="popularWindowSelect" class="bg-transparent text-xs text-white">
+                    <option value="day">24h</option>
+                    <option value="week" selected>Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
         </div>
 
         <!-- Grid -->
@@ -167,9 +184,16 @@
 
     <!-- Footer -->
     <footer class="border-t border-white/5 py-8 mt-12 bg-black">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3 text-center">
-            <p class="text-zinc-600 text-sm">&copy; 2025 Nano Banana Prompts. Designed with 🍌.</p>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+            <p class="text-zinc-600 text-sm justify-self-start text-left">&copy; 2025 Nano Banana Prompts. Designed with 🍌.</p>
+            <div class="inline-flex items-center gap-2 text-zinc-600 text-sm justify-self-center">
+                <span>Designed with 🍌 by</span>
+                <a href="https://x.com/rjarivi" target="_blank" rel="noopener noreferrer">
+                    <img src="https://pbs.twimg.com/media/G5uoqu9bAAAbA8y?format=jpg&name=medium" alt="@rjarivi" class="w-6 h-6 rounded-full ring-1 ring-white/10 shadow-sm hover:ring-white/20 transition">
+                </a>
+                <a href="https://x.com/rjarivi" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-white transition-colors">@rjarivi</a>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors justify-self-end">
                 <svg class="w-3 h-3 text-blue-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"></path>
                 </svg>
@@ -198,6 +222,20 @@
                     <span id="modalCaption"></span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="adminPanel" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-40 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 shadow-lg">
+        <div class="font-semibold mb-2">Curation Weights</div>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+            <label class="flex items-center gap-2"><span>Views</span><input id="wViews" type="number" step="0.1" class="w-16 bg-black text-white rounded px-2"></label>
+            <label class="flex items-center gap-2"><span>Shares</span><input id="wShares" type="number" step="0.1" class="w-16 bg-black text-white rounded px-2"></label>
+            <label class="flex items-center gap-2"><span>Comments</span><input id="wComments" type="number" step="0.1" class="w-16 bg-black text-white rounded px-2"></label>
+            <label class="flex items-center gap-2"><span>Time</span><input id="wTime" type="number" step="0.1" class="w-16 bg-black text-white rounded px-2"></label>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="saveWeights" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700">Save</button>
+            <span class="text-zinc-500">Open with ?admin=1</span>
         </div>
     </div>
 
@@ -494,6 +532,80 @@
         const filterBtns = document.querySelectorAll('.filter-btn');
         const emptyState = document.getElementById('emptyState');
         let currentFilter = 'all';
+        const navLatest = document.getElementById('nav-latest');
+        const navPopular = document.getElementById('nav-popular');
+        const navCurated = document.getElementById('nav-curated');
+        let currentSection = 'latest';
+        let popularWindow = 'week';
+        let weights = { views: 1.0, shares: 2.0, comments: 3.0, time: 0.5 };
+        const latestDaysLimit = 30;
+
+        function enrichPrompts() {
+            const now = Date.now();
+            const curatedTitles = new Set([
+                'Breakfast Cafe Mixed Media',
+                'Suspended Flavor Splash',
+                'Thermal X-Ray Earbud Studio',
+                'Playful 3D Caricature Portrait',
+                'Isometric City Weather Scene',
+                'Avengers Knolling'
+            ]);
+            prompts.forEach((p, i) => {
+                if (!p.addedAt) p.addedAt = new Date(now - i * 86400000).toISOString();
+                if (!p.engagement) p.engagement = { views: 0, shares: 0, comments: 0, timeSpentSec: 0, lastEngagementAt: p.addedAt };
+                if (curatedTitles.has(p.title)) {
+                    p.curated = true;
+                    if (!p.editorialNotes) p.editorialNotes = 'Selected for quality, relevance, and uniqueness.';
+                }
+            });
+        }
+
+        function cacheSet(key, data, ttlMs) {
+            const v = { data, exp: Date.now() + ttlMs };
+            try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {}
+        }
+        function cacheGet(key) {
+            try {
+                const v = JSON.parse(localStorage.getItem(key) || 'null');
+                if (!v) return null;
+                if (Date.now() > v.exp) { localStorage.removeItem(key); return null; }
+                return v.data;
+            } catch (e) { return null; }
+        }
+
+        function scorePopular(p) {
+            const e = p.engagement || { views: 0, shares: 0, comments: 0, timeSpentSec: 0 };
+            return (e.views * weights.views) + (e.shares * weights.shares) + (e.comments * weights.comments) + (e.timeSpentSec * weights.time);
+        }
+
+        function withinWindow(p) {
+            const t = new Date(p.addedAt || Date.now()).getTime();
+            const now = Date.now();
+            if (popularWindow === 'day') return now - t <= 86400000;
+            if (popularWindow === 'week') return now - t <= 604800000;
+            if (popularWindow === 'month') return now - t <= 2592000000;
+            return true;
+        }
+
+        function getSectionItems() {
+            const key = `section:${currentSection}:filter:${currentFilter}:window:${popularWindow}`;
+            const cached = cacheGet(key);
+            if (cached) return cached;
+            let items = [...prompts];
+            if (currentSection === 'latest') {
+                const cutoff = Date.now() - latestDaysLimit * 86400000;
+                items = items.filter(p => new Date(p.addedAt || Date.now()).getTime() >= cutoff)
+                             .sort((a,b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
+            } else if (currentSection === 'popular') {
+                items = items.filter(withinWindow)
+                             .map(p => { const o = {...p}; o._score = scorePopular(p); return o; })
+                             .sort((a,b) => (b._score||0) - (a._score||0));
+            } else if (currentSection === 'curated') {
+                items = items.filter(p => p.curated).sort((a,b) => a.title.localeCompare(b.title));
+            }
+            cacheSet(key, items, 60 * 60 * 1000);
+            return items;
+        }
 
         // Render Function
         function renderPrompts(data) {
@@ -527,18 +639,23 @@
                                 ${item.category}
                             </span>
                         </div>
+                        ${currentSection === 'popular' ? `<div class="absolute top-3 left-3 z-20">
+                            <span class="px-2 py-1 rounded-full bg-black/60 backdrop-blur text-xs font-medium text-white border border-white/10">🔥 ${Math.round(item._score||0)}</span>
+                        </div>` : ''}
                     </div>
                     
                     <div class="flex-grow p-5 flex flex-col relative">
                         <!-- Separator Line -->
                         <div class="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
                         
-                        <h3 class="text-white font-semibold text-lg mb-2">${item.title}</h3>
+                        <h3 class="text-white font-semibold text-lg mb-1">${item.title}</h3>
+                        ${item.addedAt ? `<div class="text-xs text-zinc-500 mb-2">${new Date(item.addedAt).toLocaleString()}</div>` : ''}
                         
                         <div class="bg-black/30 rounded-xl p-3 border border-white/5 mb-4 flex-grow relative group/text">
                             <p class="text-zinc-400 text-sm leading-relaxed line-clamp-3 font-mono" id="text-${item.id}">
                                 ${item.text}
                             </p>
+                            ${currentSection === 'curated' && item.editorialNotes ? `<div class="mt-2 text-xs text-zinc-500">${item.editorialNotes}</div>` : ''}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                         </div>
 
@@ -664,8 +781,8 @@
         // Filter Logic
         function filterPrompts() {
             const query = searchInput.value.toLowerCase();
-            
-            const filtered = prompts.filter(item => {
+            const base = getSectionItems();
+            const filtered = base.filter(item => {
                 const matchesSearch = item.title.toLowerCase().includes(query) || 
                                       item.text.toLowerCase().includes(query);
                 const matchesCategory = currentFilter === 'all' || item.category === currentFilter;
@@ -695,8 +812,41 @@
             });
         });
 
-        // Initial Render
+        const popularWindowWrap = document.getElementById('popularWindowWrap');
+        const popularWindowSelect = document.getElementById('popularWindowSelect');
+        popularWindowSelect.addEventListener('change', () => {
+            popularWindow = popularWindowSelect.value;
+            filterPrompts();
+        });
+
+        function setSection(sec) {
+            currentSection = sec;
+            document.querySelectorAll('#nav-latest,#nav-popular,#nav-curated').forEach(el => {
+                el.classList.remove('text-white');
+                el.classList.add('text-zinc-400');
+            });
+            const active = sec === 'latest' ? navLatest : sec === 'popular' ? navPopular : navCurated;
+            active.classList.remove('text-zinc-400');
+            active.classList.add('text-white');
+            filterPrompts();
+        }
+
+        navLatest.addEventListener('click', (e) => { e.preventDefault(); setSection('latest'); });
+        navPopular.addEventListener('click', (e) => { e.preventDefault(); setSection('popular'); });
+        navCurated.addEventListener('click', (e) => { e.preventDefault(); setSection('curated'); });
+
+        enrichPrompts();
         renderPrompts(prompts);
+        setSection('latest');
+        function updateSectionUI() {
+            if (currentSection === 'popular') {
+                popularWindowWrap.classList.remove('hidden');
+            } else {
+                popularWindowWrap.classList.add('hidden');
+            }
+        }
+        document.querySelectorAll('#nav-latest,#nav-popular,#nav-curated').forEach(el => el.addEventListener('click', updateSectionUI));
+        updateSectionUI();
 
         async function loadCommunityPrompts() {
             try {
@@ -707,12 +857,38 @@
                 const merged = data.prompts.filter(p => !existing.has(p.id));
                 if (merged.length) {
                     prompts = prompts.concat(merged);
+                    enrichPrompts();
                     filterPrompts();
                 }
             } catch (e) {}
         }
 
         loadCommunityPrompts();
+
+        (function initAdmin() {
+            const params = new URLSearchParams(location.search);
+            const enable = params.get('admin') === '1';
+            const panel = document.getElementById('adminPanel');
+            const wViews = document.getElementById('wViews');
+            const wShares = document.getElementById('wShares');
+            const wComments = document.getElementById('wComments');
+            const wTime = document.getElementById('wTime');
+            const saveWeights = document.getElementById('saveWeights');
+            try {
+                const saved = JSON.parse(localStorage.getItem('nbp_weights') || 'null');
+                if (saved) weights = saved;
+            } catch (e) {}
+            wViews.value = weights.views;
+            wShares.value = weights.shares;
+            wComments.value = weights.comments;
+            wTime.value = weights.time;
+            if (enable) panel.classList.remove('hidden');
+            saveWeights.addEventListener('click', () => {
+                weights = { views: parseFloat(wViews.value||'0'), shares: parseFloat(wShares.value||'0'), comments: parseFloat(wComments.value||'0'), time: parseFloat(wTime.value||'0') };
+                try { localStorage.setItem('nbp_weights', JSON.stringify(weights)); } catch (e) {}
+                filterPrompts();
+            });
+        })();
 
     </script>
 </body>
