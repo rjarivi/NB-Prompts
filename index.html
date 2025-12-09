@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana Prompts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505; /* Deep black */
+            color: #e4e4e7;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46; 
+        }
+
+        /* Card Hover Glow Effect */
+        .glass-card {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(250, 204, 21, 0.3); /* Yellow tint on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .banana-gradient-text {
+            background: linear-gradient(to right, #facc15, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Image Skeleton Loading Animation */
+        .skeleton {
+            background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #facc15;
+            color: #000;
+            text-align: center;
+            border-radius: 50px;
+            padding: 12px 24px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-yellow-500/30 selection:text-yellow-200">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3">
+                    <!-- Logo Icon -->
+                    <div class="w-10 h-10 rounded-2xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20 overflow-hidden relative group">
+                        <img src="Nano-Banana.svg" alt="Nano Banana" class="w-8 h-8 drop-shadow-lg transform group-hover:rotate-12 transition-transform duration-300">
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-white">Nano <span class="banana-gradient-text">Banana</span></span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Latest</a>
+                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Popular</a>
+                    <a href="#" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Curated</a>
+                    <a href="https://forms.gle/VEfEwoLLJoVRmuB86" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-medium bg-zinc-900 border border-zinc-800 rounded-full hover:bg-zinc-800 transition-colors text-white">Submit Prompt</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Hero Section -->
+        <div class="text-center mb-16 max-w-2xl mx-auto">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-6 tracking-tight">
+                Curated AI Prompts for <br/><span class="banana-gradient-text">Creative Minds</span>
+            </h1>
+            <p class="text-zinc-400 text-lg mb-8">
+                A minimal library of high-quality prompts. Copy, paste, and create.
+            </p>
+            
+            <!-- Search Bar -->
+            <div class="relative max-w-lg mx-auto group">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative flex items-center">
+                    <input type="text" id="searchInput" placeholder="Search prompts..." 
+                           class="block w-full py-4 pl-12 pr-4 bg-zinc-950/90 border border-zinc-800 rounded-full text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500/50 transition-all shadow-xl">
+                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tags -->
+        <div class="flex flex-wrap justify-center gap-2 mb-12" id="filterContainer">
+            <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-white text-black transition-colors" data-filter="all">All</button>
+            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="photography">Photography</button>
+            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="3d">3D Render</button>
+            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="illustration">Illustration</button>
+            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="ui">UI Design</button>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="promptsGrid">
+            <!-- Cards will be injected here via JS -->
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="inline-block p-4 rounded-full bg-zinc-900 mb-4">
+                <svg class="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <p class="text-zinc-500">No prompts found matching your search.</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 mt-12 bg-black">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3 text-center">
+            <p class="text-zinc-600 text-sm">&copy; 2025 Nano Banana Prompts. Designed with 🍌.</p>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <svg class="w-3 h-3 text-blue-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"></path>
+                </svg>
+                <span class="text-xs text-zinc-400">Powered by</span>
+                <span class="text-xs font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-transparent bg-clip-text">Gemini 3</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast">Prompt copied to clipboard!</div>
+
+    <div id="imageModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/80" onclick="closeImageModal()"></div>
+        <button class="fixed top-4 right-4 z-[60] px-3 py-1.5 rounded-full bg-red-600/80 backdrop-blur-sm text-white text-xs border border-red-400/40 shadow-lg hover:bg-red-500/80 transition" onclick="closeImageModal()" aria-label="Close image preview">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M6 6l12 12M6 18L18 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+        </button>
+        <div class="absolute inset-0 flex items-center justify-center p-6" onclick="closeImageModal()">
+            <div class="bg-zinc-950 rounded-2xl overflow-hidden border border-white/10 shadow-2xl max-w-5xl w-full" onclick="event.stopPropagation()">
+                <div class="relative">
+                    <img id="modalImage" src="" alt="Preview" class="w-full h-auto"/>
+                </div>
+                <div class="p-4 text-sm text-zinc-300">
+                    <span id="modalCaption"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Store
+        const DEFAULT_IMG_PLACEHOLDER = 'https://dummyimage.com/1200x800/0b0b0b/ffffff.png&text=Image+not+found';
+        const COMMUNITY_URL = 'https://script.google.com/macros/s/AKfycbzWBfMayA9gynCiGz-ZG6ALJSZxMoK4umPQOC_KQjrvf_ALZmVqYo3jFeBEEAHsFXwU/exec';
+
+        const prompts = [
+            {
+                id: 1,
+                category: "photography",
+                image: "assets/prompt-1.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7o3mshXsAAWfEv?format=jpg&name=4096x4096",
+                title: "Breakfast Cafe Mixed Media",
+                text: "A photo of an everyday scene at a busy cafe serving breakfast. In the foreground is an anime man with blue hair, one of the people is a pencil sketch, another is a claymation person"
+            },
+            {
+                id: 2,
+                category: "photography",
+                image: "assets/prompt-2.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7hnikwWwAEjlEP?format=jpg&name=medium",
+                title: "Suspended Flavor Splash",
+                text: "Advertising-style food photography of [subject 1] arranged on a rustic table, with [subject 2] floating above in mid-air and a splash of [subject 1] frozen in motion. High-resolution photo manipulation with selective soft focus, clean negative space for text, dramatic lighting, and crisp detail.",
+                creditHandle: "azed_ai"
+            },
+            {
+                id: 3,
+                category: "3d",
+                image: "assets/prompt-3.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7cRAocWkAAVaeR?format=jpg&name=4096x4096",
+                title: "Thermal X-Ray Earbud Studio",
+                text: "The Google Android robot, presented in a high-contrast scientific studio render against a pure black void. This tight right-side profile features a false-color thermal X-ray aesthetic, where the transparent shell reveals a sharply detailed internal architecture of batteries, drivers, and sensors using a vibrant heatmap gradient. The colors shift from deep cool blues to intense yellows and red highlights, creating a futuristic, clinical look with orthographic perspective and a soft, neon-like glow.",
+                creditHandle: "egeberkina",
+                jsonPrompt: {
+                  scene: {
+                    type: "single_object_studio_render",
+                    background: {
+                      color: "pure_black",
+                      texture: "none",
+                      lighting: "no_environment_reflections"
+                    }
+                  },
+                  subject: {
+                    object_type: "wireless_earbud",
+                    model_hint: "airpods_pro_3",
+                    view: "right_side_profile",
+                    orientation: "stem_down_ear_tip_left",
+                    composition: "center_frame",
+                    representation: "xray_cutaway",
+                    details: {
+                      shell: {
+                        visibility: "transparent",
+                        edge_glow: "subtle_blue_violet",
+                        thickness: "realistic"
+                      },
+                      internal_components: {
+                        show: true,
+                        elements: [
+                          "battery_cell",
+                          "speaker_driver",
+                          "microphones",
+                          "circuit_boards",
+                          "wiring",
+                          "sensors"
+                        ],
+                        layout: "stacked_modules_following_original_geometry",
+                        sharpness: "very_high",
+                        tech_feel: "scientific_medical_xray"
+                      }
+                    }
+                  },
+                  render_style: {
+                    look: "false_color_thermal_xray",
+                    shader: "heatmap_gradient",
+                    color_palette: {
+                      cold: "deep_blue_violet",
+                      mid: "cyan_and_green",
+                      warm: "yellow_and_orange",
+                      hot: "red_and_magenta_highlights"
+                    },
+                    glow: {
+                      enabled: true,
+                      intensity: "medium_high",
+                      soft_edge_bloom: true
+                    },
+                    transparency: {
+                      shell_opacity: 0.25,
+                      internal_parts_opacity: 0.9,
+                      overlap_blending: "additive"
+                    }
+                  },
+                  camera: {
+                    framing: "tight_single_object",
+                    lens: "standard_50mm",
+                    angle: "orthographic_like_side_view",
+                    distance: "medium_close_up",
+                    perspective: "minimal_distortion"
+                  },
+                  lighting: {
+                    environment: "black_void",
+                    sources: [
+                      {
+                        type: "soft_invisible_backlight",
+                        purpose: "enhance_glow_and_xray_edges"
+                      }
+                    ],
+                    shadows: "none"
+                  },
+                  post_processing: {
+                    contrast: "high",
+                    clarity: "very_high",
+                    saturation: "strong_in_color_bands_only",
+                    vignette: "very_subtle",
+                    noise: "none",
+                    overall_mood: "clinical_scientific_futuristic"
+                  }
+                }
+            },
+            {
+                id: 4,
+                category: "photography",
+                image: "assets/prompt-4.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7bN3K_W4AA43Ej?format=jpg&name=4096x4096",
+                title: "Hidden Banana Word",
+                text: "Make a photo with a hidden word embedded into it, make the word hard to see until you spot it, then you can't unsee it. Use the word 'banana'. Form the word out of a group of monkeys."
+            },
+            {
+                id: 5,
+                category: "3d",
+                image: "assets/prompt-5.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7UvT4pXkAAEyU_?format=jpg&name=large",
+                title: "Playful 3D Caricature Portrait",
+                text: "A highly stylized 3D caricature of the person in the uploaded image, with expressive facial features, and playful exaggeration. Rendered in a smooth, polished style with clean materials and soft ambient lighting. Bold color background to emphasize the character’s charm and presence.",
+                creditHandle: "rovvmut_"
+            }
+            ,{
+                id: 6,
+                category: "photography",
+                image: "assets/prompt-6.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7QmCFcXoAAwaet?format=jpg&name=4096x4096",
+                title: "Nano Banana Pro Magazine Cover",
+                text: "A photo of a glossy magazine cover, the cover has the large bold words 'Nano Banana Pro'. The text is in a serif font, black on white, and fills the view. No other text. In front of the text there is a dynamic portrait of a person in green and banana yellow colored high-end fashion. Put the issue number and today's date in the corner along with a barcode and a price. The magazine is on a white shelf against a wall."
+                ,creditHandle: "NanoBanana"
+            },{
+                id: 7,
+                category: "3d",
+                image: "assets/prompt-7.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7pqtTZbYAAK4QJ?format=jpg&name=small",
+                title: "Banana Skater",
+                text: "A banana wearing cool sunglasses riding a skateboard, 3D cartoon style, pixar vibes, vibrant yellow, dynamic pose, blue background, rim lighting.",
+                creditHandle: "rjarivi"
+            },{
+                id: 8,
+                category: "3d",
+                image: "assets/prompt-8.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7KbDTtWkAAeOlu?format=jpg&name=4096x4096",
+                title: "Isometric City Weather Scene",
+                text: "Present a clear, 45° top-down isometric miniature 3D cartoon scene of [CITY], featuring its most iconic landmarks and architectural elements. Use soft, refined textures with realistic PBR materials and gentle, lifelike lighting and shadows. Integrate the current weather conditions directly into the city environment to create an immersive atmospheric mood. Use a clean, minimalistic composition with a soft, solid-colored background. At the top-center, place the title '[CITY]' in large bold text, a prominent weather icon beneath it, then the date (small text) and temperature (medium text). All text must be centered with consistent spacing, and may subtly overlap the tops of the buildings.",
+                creditHandle: "dotey"
+            },{
+                id: 9,
+                category: "photography",
+                image: "assets/prompt-9.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7LuUD2X0AAcJr5?format=jpg&name=large",
+                title: "City Magnets Knolling",
+                text: "Present a clear, directly top-down photograph of [CITY] landmarks as 3D magnets, arranged neatly in parallel lines and right angles, knolling. The objects are realistic miniatures. At the top-center, place the city name as a souvenir magnet, and a handwritten post-it note for the temperature and weather conditions. Incorporate items necessary for today's weather into the knolling. No repeats."
+                ,creditHandle: "NanoBanana"
+            },{
+                id: 10,
+                category: "3d",
+                image: "assets/prompt-10.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7LGpq0XAAAxcIP?format=jpg&name=4096x4096",
+                title: "USA Landmark Diorama",
+                text: "Create a high-detail 3D isometric diorama of the entire United States, where each state is represented as its own miniature platform. Inside each state, place a stylized, small-scale 3D model of that state’s most iconic landmark. Use the same visual style as a cute, polished 3D city diorama: soft pastel colors, clean materials, smooth rounded forms, gentle shadows, and subtle reflections. Each landmark should look like a miniature model, charming, simplified, but clearly recognizable. Arrange the states in accurate geographical layout, with consistent lighting and perspective. Include state labels and landmark labels in a clean, modern font, floating above or near each model.",
+                creditHandle: "DataExec"
+            },{
+                id: 11,
+                category: "3d",
+                image: "assets/prompt-11.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7LBO5CW4AAx6pe?format=jpg&name=medium",
+                title: "London Underground Central Line Scene",
+                text: "Present a clear, 45° top-down isometric miniature 3D scene of the London Underground. At the top-center, place the title 'CENTRAL LINE' in bold sans-serif text, a train icon beneath it, then 'Service Status' (small text) and 'Good service' (red medium text). Background is a soft, solid tile white.",
+                creditHandle: "NanoBanana"
+            },{
+                id: 12,
+                category: "photography",
+                image: "assets/prompt-12.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7KLuBeX0AEt50B?format=jpg&name=large",
+                title: "Nano Banana Pro Perfumery Ad",
+                text: "1. A minimal logo in a circle for Nano Banana Pro perfumery, black and white. 2. Put this logo on a high-end ad for a banana scented perfume. The logo is perfectly integrated into the bottle.",
+                creditHandle: "NanoBanana"
+            },{
+                id: 13,
+                category: "photography",
+                image: "assets/prompt-13.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7p4OfWaQAA12h7?format=jpg&name=medium",
+                title: "Photo Restoration 4K",
+                text: "Faithfully restore this image with high fidelity to modern photograph quality, in full color, upscale to 4K",
+                creditHandle: "NanoBanana"
+            },{
+                id: 14,
+                category: "photography",
+                image: "assets/prompt-14.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G6upXKLXcAAFtTZ?format=jpg&name=medium",
+                title: "Avengers Knolling",
+                text: "A knolling for the Avengers / MCU",
+                creditHandle: "NanoBanana"
+            },{
+                id: 15,
+                category: "photography",
+                image: "assets/prompt-15.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G6lthskX0AAT897?format=jpg&name=4096x4096",
+                title: "Character 360 Turnaround",
+                text: "A 360 turnaround view of this character, they are standing against a white background",
+                creditHandle: "NanoBanana"
+            },{
+                id: 16,
+                category: "photography",
+                image: "assets/prompt-16.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G6hBrbzXAAAkUCJ?format=jpg&name=4096x4096",
+                title: "Nano Banana Pro Factory BTS",
+                text: "Behind the scene's at Google's Nano Banana Pro factory, thousands of bananas are frantically drawing, editing pictures and taking photos (in different areas doing different things)",
+                creditHandle: "NanoBanana"
+            },{
+                id: 17,
+                category: "photography",
+                image: "assets/prompt-17.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G6dzr7ibcAACLWW?format=jpg&name=4096x4096",
+                title: "Decade Style Grid 4×4",
+                text: "Make a 4×4 grid starting with the 1880s. In each section, I should appear styled according to that decade (clothing, hairstyle, facial hair, accessories). Use colors, background, & film style accordingly.",
+                creditHandle: "1littlecoder"
+            },{
+                id: 18,
+                category: "ui",
+                image: "assets/prompt-18.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G6Tcc7LaoAEjMZo?format=jpg&name=large",
+                title: "Nano Banana Sprite Sheet",
+                text: "Generate a sprite sheet for a cute nano banana action figure for my RPG pixel game, it should cover the main 10 game character actions for a exploration game and label the different parts of the sprite sheet accordingly",
+                creditHandle: "NanoBanana"
+            },{
+                id: 19,
+                category: "3d",
+                image: "assets/prompt-19.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7jPBxmXwAA7igN?format=jpg&name=4096x4096",
+                title: "Glasses-free 3D LED Intersection",
+                text: "An enormous L-shaped glasses-free 3D LED screen situated prominently at a bustling urban intersection, designed in an iconic architectural style reminiscent of Shinjuku in Tokyo or Taikoo Li in Chengdu. The screen displays a captivating glasses-free 3D animation featuring an adorable giant kitten playfully paws at passing pedestrians, its fluffy paws and curious face extending realistically into the space around the screen. The characters and objects possess striking depth and appear to break through the screen’s boundaries, extending outward or floating vividly in mid-air. Under realistic daylight conditions, these elements cast lifelike shadows onto the screen’s surface and surrounding buildings. Rich in intricate detail and vibrant colors, the animation seamlessly integrates with the urban setting and the bright sky overhead.",
+                creditHandle: "dotey"
+            },{
+                id: 20,
+                category: "photography",
+                image: "assets/prompt-20.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7dzYjAXsAA_msh?format=jpg&name=4096x4096",
+                title: "Youth Fashion Collage Portrait",
+                text: "Recreate the character's appearance from the uploaded photo, accurately preserving hairstyle, facial details, and expression. Present it as a bright, fresh, and youthful fashion portrait in a vertical collage format. She wears trendy youthful clothing, holding a red lollipop near her lips. Her face is playfully decorated with cute colorful stickers shaped like hearts, strawberries, and stars. Background: corkboard covered with colorful sticky notes and memo papers, campus journaling vibe with hand-drawn doodles. Surround with ~4 scrapbook-style photo frames showing outfits and poses. Soft studio lighting, HD details, Korean fashion-magazine style, vibrant colors. Aspect ratio: 9:16.",
+                creditHandle: "dotey"
+            },{
+                id: 21,
+                category: "3d",
+                image: "assets/prompt-21.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7iQBf4W4AAPRf_?format=jpg&name=large",
+                title: "Mini City Over Cappuccino",
+                text: "Present a delicate miniature 3D scene from a 45° overhead angle, highlighting precise and intricate model details. A porcelain coffee cup with a mini city {city} subtly floating above the cappuccino foam, occupying most of the frame. Center the most iconic landmark of {city}. Attractions emit soft lighting; tiny streets include realistic vehicles. Photorealistic cinematic lighting and depth-of-field blur create a dreamlike atmosphere. Extremely rich detail, 8K cinematic quality. Image ratio 1:1.",
+                creditHandle: "dotey"
+            },{
+                id: 22,
+                category: "3d",
+                image: "assets/prompt-22.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7RvpdEWgAALFQZ?format=jpg&name=large",
+                title: "Company Stock Isometric Scene",
+                text: "Present an exquisite, miniature 3D cartoon-style scene of the company corresponding to the user-specified name or stock ticker, viewed from a 45° top-down perspective. Place the company's most iconic building or campus at center, with icons of key products and playful figures. Cinema 4D style, refined modeling, realistic PBR materials, gentle lighting. Integrate real-time stock market data for the specified date, with clean layout and solid-color background. Top-center: company name/ticker in large font, date in extra-small, stock price range in medium with trend icons/charts. All text in the user-specified language. Parameters: Aspect ratio {user input, default 1:1}; Date {user input, current}; Company/ticker {user input}. Example: Google, Date: 12/3/2025.",
+                creditHandle: "dotey"
+            },{
+                id: 23,
+                category: "3d",
+                image: "assets/prompt-23.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7j6GF9WAAAkwQO?format=jpg&name=medium",
+                title: "Iconic Scene Diorama",
+                text: "Present a clear, 45° top-down isometric miniature 3D cartoon scene of the iconic scene [SCENE NAME] from [MOVIE/SHOW], with refined textures, realistic PBR materials, and gentle lifelike lighting. Create a raised diorama base with the most recognizable elements and tiny stylized characters (no facial details). Use a clean solid [BACKGROUND COLOR] background. Top-center: [MOVIE/SHOW] in large bold text, beneath it [SCENE NAME] in medium text, and the official logo below. All text must automatically match background contrast (white or black). Composition: perfectly centered layout, square 1080x1080, ultra-clean, high-clarity diorama aesthetic.",
+                creditHandle: "TechieBySA"
+            },{
+                id: 24,
+                category: "3d",
+                image: "assets/prompt-24.jpg",
+                imageRemote: "https://pbs.twimg.com/media/G7LbE6PX0AAatoh?format=jpg&name=medium",
+                title: "LEGO Logo Product Render",
+                text: "A very detailed 3D render of the uploaded logo, fully recreated using colorful LEGO bricks. Match the colors of the original logo using the closest available LEGO brick colors. Realistic texture, soft shadows, and small reflections for a playful photorealistic effect. Clean white background, centered composition, even studio lighting, 1080x1080.",
+                creditHandle: "TechieBySA"
+            }
+        ];
+
+        const grid = document.getElementById('promptsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const emptyState = document.getElementById('emptyState');
+        let currentFilter = 'all';
+
+        // Render Function
+        function renderPrompts(data) {
+            grid.innerHTML = '';
+            
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-3xl overflow-hidden flex flex-col h-full group relative';
+                
+                card.innerHTML = `
+                    <div class="relative h-64 sm:h-72 lg:h-80 w-full overflow-hidden bg-zinc-900">
+                        <div class="skeleton absolute inset-0 z-0"></div>
+                        <img src="${item.imageRemote || item.image}" alt="${item.title}" 
+                             class="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-110 opacity-0 cursor-zoom-in"
+                             onload="this.classList.remove('opacity-0')"
+                             onerror="handleImageError(this, ${item.id})" data-fallback-stage="0">
+                        ${item.creditHandle ? `<div class="absolute bottom-3 left-3 z-20">
+                            <a href="https://x.com/${item.creditHandle}" class="px-2 py-1 rounded-full bg-black/60 backdrop-blur text-xs font-medium text-white border border-white/10">
+                                Prompt by @${item.creditHandle}
+                            </a>
+                        </div>` : ''}
+                        <div class="absolute top-3 right-3 z-20">
+                            <span class="px-2 py-1 rounded-full bg-black/60 backdrop-blur text-xs font-medium text-white border border-white/10 capitalize">
+                                ${item.category}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-grow p-5 flex flex-col relative">
+                        <!-- Separator Line -->
+                        <div class="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                        
+                        <h3 class="text-white font-semibold text-lg mb-2">${item.title}</h3>
+                        
+                        <div class="bg-black/30 rounded-xl p-3 border border-white/5 mb-4 flex-grow relative group/text">
+                            <p class="text-zinc-400 text-sm leading-relaxed line-clamp-3 font-mono" id="text-${item.id}">
+                                ${item.text}
+                            </p>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="copyToClipboard('${item.text.replace(/'/g, "\\'")}', this)" 
+                                    class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                <span>Copy Prompt</span>
+                            </button>
+                            ${item.jsonPrompt ? `
+                            <button onclick="copyJson(${item.id}, this)" 
+                                    class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10"></path>
+                                </svg>
+                                <span>Copy JSON Prompt</span>
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                const imgEl = card.querySelector('img');
+                if (imgEl) {
+                    imgEl.addEventListener('click', () => {
+                        openImagePreview(
+                            item.imageRemote || item.image,
+                            item.title,
+                            item.creditHandle || 'NanoBanana'
+                        );
+                    });
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        // Copy Functionality
+        function copyToClipboard(text, btn) {
+            // Create a temporary textarea element (fallback method that works reliably in most environments including iframes)
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast();
+                
+                // Button feedback
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Copied!</span>
+                `;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy', err);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function handleImageError(imgEl, id) {
+            const item = prompts.find(p => p.id === id);
+            const stage = parseInt(imgEl.dataset.fallbackStage || '0', 10);
+            if (!item) {
+                imgEl.src = DEFAULT_IMG_PLACEHOLDER;
+                return;
+            }
+            if (stage === 0 && item.image) {
+                imgEl.dataset.fallbackStage = '1';
+                imgEl.src = item.image;
+                return;
+            }
+            imgEl.dataset.fallbackStage = '2';
+            imgEl.src = DEFAULT_IMG_PLACEHOLDER;
+        }
+
+        function copyJson(id, btn) {
+            const item = prompts.find(p => p.id === id);
+            if (!item || !item.jsonPrompt) return;
+            const json = JSON.stringify(item.jsonPrompt, null, 2);
+            copyToClipboard(json, btn);
+        }
+
+        function openImagePreview(url, title, handle) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            const caption = document.getElementById('modalCaption');
+            img.src = url;
+            caption.innerHTML = `${title} · <a href="https://x.com/${handle}" class="underline">@${handle}</a>`;
+            modal.classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.src = '';
+            modal.classList.add('hidden');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeImageModal();
+        });
+
+        // Toast Notification
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // Filter Logic
+        function filterPrompts() {
+            const query = searchInput.value.toLowerCase();
+            
+            const filtered = prompts.filter(item => {
+                const matchesSearch = item.title.toLowerCase().includes(query) || 
+                                      item.text.toLowerCase().includes(query);
+                const matchesCategory = currentFilter === 'all' || item.category === currentFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderPrompts(filtered);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', filterPrompts);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update UI
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-white', 'text-black');
+                    b.classList.add('bg-zinc-900', 'text-zinc-400');
+                });
+                btn.classList.remove('bg-zinc-900', 'text-zinc-400');
+                btn.classList.add('bg-white', 'text-black');
+                
+                // Update Logic
+                currentFilter = btn.getAttribute('data-filter');
+                filterPrompts();
+            });
+        });
+
+        // Initial Render
+        renderPrompts(prompts);
+
+        async function loadCommunityPrompts() {
+            try {
+                const res = await fetch(COMMUNITY_URL, { method: 'GET' });
+                const data = await res.json();
+                if (!data || !Array.isArray(data.prompts)) return;
+                const existing = new Set(prompts.map(p => p.id));
+                const merged = data.prompts.filter(p => !existing.has(p.id));
+                if (merged.length) {
+                    prompts = prompts.concat(merged);
+                    filterPrompts();
+                }
+            } catch (e) {}
+        }
+
+        loadCommunityPrompts();
+
+    </script>
+</body>
+</html>
