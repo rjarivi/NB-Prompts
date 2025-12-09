@@ -149,12 +149,22 @@
         </div>
 
         <!-- Filter Tags -->
-        <div class="flex flex-wrap justify-center gap-2 mb-6" id="filterContainer">
-            <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-white text-black transition-colors" data-filter="all">All</button>
-            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="photography">Photography</button>
-            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="3d">3D Render</button>
-            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="illustration">Illustration</button>
-            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="ui">UI Design</button>
+        <div class="flex flex-wrap items-center gap-2 mb-6 md:justify-between" id="filterContainer">
+            <div class="flex flex-wrap justify-center gap-2">
+                <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-white text-black transition-colors" data-filter="all">All</button>
+                <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="photography">Photography</button>
+                <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="3d">3D Render</button>
+                <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="illustration">Illustration</button>
+                <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors" data-filter="ui">UI Design</button>
+            </div>
+            <button id="refreshBtn" class="px-4 py-2 rounded-full text-sm font-medium bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 4v6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M20 20v-6h-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M5 20a9 9 0 0 0 14-5M19 4a9 9 0 0 0-14 5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <span>Refresh</span>
+            </button>
         </div>
         <div class="flex justify-center mb-12">
             <div id="popularWindowWrap" class="hidden inline-flex items-center gap-2 px-3 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
@@ -537,8 +547,57 @@
         const navCurated = document.getElementById('nav-curated');
         let currentSection = 'latest';
         let popularWindow = 'week';
-        let weights = { views: 1.0, shares: 2.0, comments: 3.0, time: 0.5 };
+        let weights = { views: 1.0, shares: 2.0, comments: 3.0, copies: 4.0, time: 0.5 };
         const latestDaysLimit = 30;
+        let cacheVersion = 1;
+        let engagementStore = {};
+        let previewStart = null;
+        let currentPreviewId = null;
+        function loadEngagement() {
+            try { engagementStore = JSON.parse(localStorage.getItem('nbp_engagement') || '{}'); } catch (e) { engagementStore = {}; }
+        }
+        function saveEngagement() {
+            try { localStorage.setItem('nbp_engagement', JSON.stringify(engagementStore)); } catch (e) {}
+        }
+        function recordCopy(id) {
+            if (!id) return;
+            const e = engagementStore[id] || { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0 };
+            e.copies = (e.copies || 0) + 1;
+            engagementStore[id] = e;
+            saveEngagement();
+        }
+        function recordPreviewOpen(id) {
+            if (!id) return;
+            currentPreviewId = id;
+            previewStart = Date.now();
+            const e = engagementStore[id] || { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0 };
+            e.views = (e.views || 0) + 1;
+            engagementStore[id] = e;
+            saveEngagement();
+        }
+        function recordPreviewClose() {
+            if (!currentPreviewId || !previewStart) { currentPreviewId = null; previewStart = null; return; }
+            const dt = Math.max(0, Math.floor((Date.now() - previewStart) / 1000));
+            const e = engagementStore[currentPreviewId] || { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0 };
+            e.timeSpentSec = (e.timeSpentSec || 0) + dt;
+            engagementStore[currentPreviewId] = e;
+            saveEngagement();
+            currentPreviewId = null;
+            previewStart = null;
+        }
+        function applyEngagementToPrompts() {
+            prompts.forEach(p => {
+                const e = engagementStore[p.id];
+                if (!p.engagement) p.engagement = { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0 };
+                if (e) {
+                    p.engagement.views = e.views || 0;
+                    p.engagement.shares = e.shares || 0;
+                    p.engagement.comments = e.comments || 0;
+                    p.engagement.timeSpentSec = e.timeSpentSec || 0;
+                    p.engagement.copies = e.copies || 0;
+                }
+            });
+        }
 
         function enrichPrompts() {
             const now = Date.now();
@@ -550,14 +609,16 @@
                 'Isometric City Weather Scene',
                 'Avengers Knolling'
             ]);
+            loadEngagement();
             prompts.forEach((p, i) => {
                 if (!p.addedAt) p.addedAt = new Date(now - i * 86400000).toISOString();
-                if (!p.engagement) p.engagement = { views: 0, shares: 0, comments: 0, timeSpentSec: 0, lastEngagementAt: p.addedAt };
+                if (!p.engagement) p.engagement = { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0, lastEngagementAt: p.addedAt };
                 if (curatedTitles.has(p.title)) {
                     p.curated = true;
                     if (!p.editorialNotes) p.editorialNotes = 'Selected for quality, relevance, and uniqueness.';
                 }
             });
+            applyEngagementToPrompts();
         }
 
         function cacheSet(key, data, ttlMs) {
@@ -574,8 +635,8 @@
         }
 
         function scorePopular(p) {
-            const e = p.engagement || { views: 0, shares: 0, comments: 0, timeSpentSec: 0 };
-            return (e.views * weights.views) + (e.shares * weights.shares) + (e.comments * weights.comments) + (e.timeSpentSec * weights.time);
+            const e = p.engagement || { views: 0, shares: 0, comments: 0, timeSpentSec: 0, copies: 0 };
+            return (e.views * weights.views) + (e.shares * weights.shares) + (e.comments * weights.comments) + (e.copies * weights.copies) + (e.timeSpentSec * weights.time);
         }
 
         function withinWindow(p) {
@@ -588,7 +649,7 @@
         }
 
         function getSectionItems() {
-            const key = `section:${currentSection}:filter:${currentFilter}:window:${popularWindow}`;
+            const key = `section:${currentSection}:filter:${currentFilter}:window:${popularWindow}:v:${cacheVersion}`;
             const cached = cacheGet(key);
             if (cached) return cached;
             let items = [...prompts];
@@ -660,29 +721,30 @@
                         </div>
 
                         <div class="flex gap-2">
-                            <button onclick="copyToClipboard('${item.text.replace(/'/g, "\\'")}', this)" 
-                                    class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                </svg>
-                                <span>Copy Prompt</span>
-                            </button>
-                            ${item.jsonPrompt ? `
-                            <button onclick="copyJson(${item.id}, this)" 
-                                    class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10"></path>
-                                </svg>
-                                <span>Copy JSON Prompt</span>
-                            </button>
-                            ` : ''}
-                        </div>
+                            <button onclick="copyToClipboard('${item.text.replace(/'/g, "\\'")}', this, ${item.id})" 
+                                     class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
+                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></rect>
+                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                 </svg>
+                                 <span>Copy Prompt</span>
+                             </button>
+                             ${item.jsonPrompt ? `
+                             <button onclick="copyJson(${item.id}, this)" 
+                                     class="copy-btn flex-1 py-3 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:bg-yellow-500 group-hover:text-black group-hover:font-bold">
+                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10"></path>
+                                 </svg>
+                                 <span>Copy JSON Prompt</span>
+                             </button>
+                             ` : ''}
+                         </div>
                     </div>
                 `;
                 const imgEl = card.querySelector('img');
                 if (imgEl) {
                     imgEl.addEventListener('click', () => {
+                        recordPreviewOpen(item.id);
                         openImagePreview(
                             item.imageRemote || item.image,
                             item.title,
@@ -695,7 +757,7 @@
         }
 
         // Copy Functionality
-        function copyToClipboard(text, btn) {
+        function copyToClipboard(text, btn, id) {
             // Create a temporary textarea element (fallback method that works reliably in most environments including iframes)
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -708,6 +770,7 @@
             try {
                 document.execCommand('copy');
                 showToast();
+                if (typeof id !== 'undefined') { try { recordCopy(id); } catch (e) {} }
                 
                 // Button feedback
                 const originalContent = btn.innerHTML;
@@ -748,7 +811,7 @@
             const item = prompts.find(p => p.id === id);
             if (!item || !item.jsonPrompt) return;
             const json = JSON.stringify(item.jsonPrompt, null, 2);
-            copyToClipboard(json, btn);
+            copyToClipboard(json, btn, id);
         }
 
         function openImagePreview(url, title, handle) {
@@ -761,6 +824,7 @@
         }
 
         function closeImageModal() {
+            try { recordPreviewClose(); } catch (e) {}
             const modal = document.getElementById('imageModal');
             const img = document.getElementById('modalImage');
             img.src = '';
@@ -795,6 +859,24 @@
 
         // Event Listeners
         searchInput.addEventListener('input', filterPrompts);
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                const original = refreshBtn.innerHTML;
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = `
+                    <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <span>Refreshing...</span>
+                `;
+                try { await loadCommunityPrompts(); }
+                finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = original;
+                }
+            });
+        }
 
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -850,13 +932,44 @@
 
         async function loadCommunityPrompts() {
             try {
-                const res = await fetch(COMMUNITY_URL, { method: 'GET' });
-                const data = await res.json();
-                if (!data || !Array.isArray(data.prompts)) return;
-                const existing = new Set(prompts.map(p => p.id));
-                const merged = data.prompts.filter(p => !existing.has(p.id));
-                if (merged.length) {
-                    prompts = prompts.concat(merged);
+                const res = await fetch(COMMUNITY_URL, { method: 'GET', mode: 'cors', headers: { 'Accept': 'application/json' } });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    try {
+                        const txt = await res.text();
+                        data = JSON.parse(txt);
+                    } catch (e2) {
+                        return;
+                    }
+                }
+                const rows = Array.isArray(data?.prompts) ? data.prompts : (Array.isArray(data) ? data : []);
+                if (!rows.length) return;
+                
+                const approved = rows.filter(p => {
+                    const v = ((p.moderation ?? p.approved ?? p.status ?? '') + '').toLowerCase();
+                    return v === 'approved' || v === 'ok' || v === 'true' || v === 'yes';
+                });
+                const candidates = approved.length ? approved : rows;
+                const existingIds = new Set(prompts.map(p => p.id));
+                const existingTitles = new Set(prompts.map(p => p.title));
+                const incoming = candidates.filter(p => {
+                    if (p.id != null) return !existingIds.has(p.id);
+                    return p.title ? !existingTitles.has(p.title) : true;
+                }).map((p, i) => {
+                    const o = { ...p };
+                    if (!o.category) o.category = 'community';
+                    if (!o.addedAt) o.addedAt = new Date().toISOString();
+                    if (o.id == null) {
+                        const maxId = Math.max(0, ...prompts.map(pp => pp.id || 0));
+                        o.id = maxId + i + 1;
+                    }
+                    return o;
+                });
+                if (incoming.length) {
+                    prompts.push(...incoming);
+                    cacheVersion++;
                     enrichPrompts();
                     filterPrompts();
                 }
@@ -886,6 +999,7 @@
             saveWeights.addEventListener('click', () => {
                 weights = { views: parseFloat(wViews.value||'0'), shares: parseFloat(wShares.value||'0'), comments: parseFloat(wComments.value||'0'), time: parseFloat(wTime.value||'0') };
                 try { localStorage.setItem('nbp_weights', JSON.stringify(weights)); } catch (e) {}
+                cacheVersion++;
                 filterPrompts();
             });
         })();
