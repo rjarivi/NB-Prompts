@@ -1,0 +1,27 @@
+{
+  "name": "nano-banana-prompts",
+  "version": "1.0.0",
+  "description": "Curated AI Prompts for Creative Minds",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjarivi/nano-banana-prompts.git"
+  },
+  "keywords": [
+    "ai",
+    "prompts",
+    "gallery",
+    "midjourney",
+    "stable-diffusion",
+    "javascript"
+  ],
+  "author": "rjarivi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rjarivi/nano-banana-prompts/issues"
+  },
+  "homepage": "https://github.com/rjarivi/nano-banana-prompts#readme"
+}
